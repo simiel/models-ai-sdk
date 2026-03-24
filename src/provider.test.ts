@@ -87,11 +87,11 @@ describe('GitHubModelsProvider', () => {
       )
     })
 
-    it('should return an embeddings model when called as a function', () => {
+    it('should return an embeddings model when called via embeddingModel', () => {
       const provider = createGitHubModels()
       const modelId = 'model-id'
 
-      const model = provider.textEmbeddingModel(modelId)
+      const model = provider.embeddingModel(modelId)
       expect(model).toBeInstanceOf(OpenAICompatibleEmbeddingModel)
       expect(OpenAICompatibleEmbeddingModel).toHaveBeenCalledWith(
         modelId,

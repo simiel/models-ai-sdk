@@ -1,6 +1,6 @@
 import {OpenAICompatibleChatLanguageModel, OpenAICompatibleEmbeddingModel} from '@ai-sdk/openai-compatible'
 import type {OpenAICompatibleChatConfig} from '@ai-sdk/openai-compatible/internal'
-import {type EmbeddingModelV2, type LanguageModelV2, NoSuchModelError, type ProviderV2} from '@ai-sdk/provider'
+import {type EmbeddingModelV3, type LanguageModelV3, NoSuchModelError, type ProviderV3} from '@ai-sdk/provider'
 import {type FetchFunction, loadApiKey, withoutTrailingSlash} from '@ai-sdk/provider-utils'
 
 import type {GitHubModelsChatModelId, GitHubModelsEmbeddingModelId} from './model-id'
@@ -29,21 +29,26 @@ export interface GitHubModelsProviderOptions {
   fetch?: FetchFunction
 }
 
-export interface GitHubModelsProvider extends ProviderV2 {
+export interface GitHubModelsProvider extends ProviderV3 {
   /**
   Creates a model for text generation.
   */
-  (modelId: GitHubModelsChatModelId): LanguageModelV2
+  (modelId: GitHubModelsChatModelId): LanguageModelV3
 
   /**
   Creates a language model for text generation.
   */
-  languageModel(modelId: GitHubModelsChatModelId): LanguageModelV2
+  languageModel(modelId: GitHubModelsChatModelId): LanguageModelV3
 
   /**
   Creates a language model for text embedding.
   */
-  textEmbeddingModel(modelId: GitHubModelsEmbeddingModelId): EmbeddingModelV2<string>
+  textEmbeddingModel(modelId: GitHubModelsEmbeddingModelId): EmbeddingModelV3
+
+  /**
+  Creates a language model for text embedding.
+  */
+  embeddingModel(modelId: GitHubModelsEmbeddingModelId): EmbeddingModelV3
 }
 
 export function createGitHubModels(options: GitHubModelsProviderOptions = {}): GitHubModelsProvider {
@@ -72,10 +77,12 @@ export function createGitHubModels(options: GitHubModelsProviderOptions = {}): G
   const createModel = (modelId: GitHubModelsChatModelId) => new OpenAICompatibleChatLanguageModel(modelId, baseOptions)
 
   const provider = (modelId: GitHubModelsChatModelId) => createModel(modelId)
+  provider.specificationVersion = 'v3' as const
   provider.languageModel = createModel
 
   provider.textEmbeddingModel = (modelId: GitHubModelsEmbeddingModelId) =>
     new OpenAICompatibleEmbeddingModel(modelId, baseOptions)
+  provider.embeddingModel = provider.textEmbeddingModel
 
   provider.imageModel = (modelId: string) => {
     throw new NoSuchModelError({modelId, modelType: 'imageModel'})
